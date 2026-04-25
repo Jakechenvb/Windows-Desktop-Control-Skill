@@ -38,8 +38,8 @@ function Get-RndDouble {
 
 function Get-Bezier {
     param($t, $p0, $p1, $p2, $p3)
-    $x = (1-$t)**3*$p0.x + 3*(1-$t)**2*$t*$p1.x + 3*(1-$t)*$t*$t*$p2.x + $t**3*$p3.x
-    $y = (1-$t)**3*$p0.y + 3*(1-$t)**2*$t*$p1.y + 3*(1-$t)*$t*$t*$p2.y + $t**3*$p3.y
+    $x = [Math]::Pow(1-$t, 3)*$p0.x + 3*[Math]::Pow(1-$t, 2)*$t*$p1.x + 3*(1-$t)*$t*$t*$p2.x + [Math]::Pow($t, 3)*$p3.x
+    $y = [Math]::Pow(1-$t, 3)*$p0.y + 3*[Math]::Pow(1-$t, 2)*$t*$p1.y + 3*(1-$t)*$t*$t*$p2.y + [Math]::Pow($t, 3)*$p3.y
     return [PSCustomObject]@{ x = [int]$x; y = [int]$y }
 }
 
@@ -50,7 +50,6 @@ function Safe-Int {
     return $result
 }
 
-# ===================== 终极拟人鼠标移动 =====================
 function Move-Mouse-Human {
     param($tx, $ty)
     $tx = Safe-Int $tx
@@ -65,9 +64,8 @@ function Move-Mouse-Human {
     $dy = $ty - $start.y
     $dist = [Math]::Sqrt($dx * $dx + $dy * $dy)
 
-    # 长距离分段扫视（视觉追踪滞后）
     if ($dist -gt 300) {
-        $ratio = 0.85 + Get-RndDouble -0.06 0.06
+        $ratio = 0.85 + (Get-RndDouble -0.06 0.06)
         $midX = $start.x + $dx * $ratio
         $midY = $start.y + $dy * $ratio
         Move-Mouse-Human-Smooth $midX $midY
@@ -91,33 +89,28 @@ function Move-Mouse-Human-Smooth {
     $dy = $ty - $start.y
     $dist = [Math]::Sqrt($dx * $dx + $dy * $dy)
 
-    # ===================== 1. 动态随机步数（距离+随机）=====================
     $baseSteps = [Math]::Max(20, [int]([Math]::Sqrt($dist) * 2.5))
     $jitterSteps = Get-RndDouble -0.25 0.25
     $steps = [Math]::Clamp([int]($baseSteps * (1 + $jitterSteps)), 20, 50)
 
-    # ===================== 2. 全局参数随机化（每次移动都不同）=====================
     $jitter = Get-RndDouble 1.0 1.5
     $wave = Get-RndDouble 1.3 1.8
     $tremorStep = Get-RndDouble 0.35 0.42
     $tremorDamping = Get-RndDouble 0.84 0.88
 
-    # 随机控制点
     $cp1 = @{
-        x = [Math]::Clamp($start.x + Get-Rnd -140 140, 0, $screen.Width)
-        y = [Math]::Clamp($start.y + Get-Rnd -120 120, 0, $screen.Height)
+        x = [Math]::Clamp($start.x + (Get-Rnd -140 140), 0, $screen.Width)
+        y = [Math]::Clamp($start.y + (Get-Rnd -120 120), 0, $screen.Height)
     }
     $cp2 = @{
-        x = [Math]::Clamp($end.x + Get-Rnd -120 120, 0, $screen.Width)
-        y = [Math]::Clamp($end.y + Get-Rnd -100 100, 0, $screen.Height)
+        x = [Math]::Clamp($end.x + (Get-Rnd -120 120), 0, $screen.Width)
+        y = [Math]::Clamp($end.y + (Get-Rnd -100 100), 0, $screen.Height)
     }
 
-    # 肌肉震颤初始化
     $tremorX = 0.0
     $tremorY = 0.0
 
     for ($i = 0; $i -le $steps; $i++) {
-        # ===================== 3. 分段非线性加速度（顿笔）=====================
         $segments = 3
         $segLen = $steps / $segments
         $segIdx = [int]($i / $segLen)
@@ -127,17 +120,14 @@ function Move-Mouse-Human-Smooth {
         $segEase = 1 - [Math]::Pow(1 - $segT, $easePower)
         $t = ($segIdx + $segEase) / $segments
 
-        # 贝塞尔基础点
         $pt = Get-Bezier $t $start $cp1 $cp2 $end
         $attenuation = 1 - [Math]::Pow($t, 2)
 
-        # 基础抖动
         $jx = Get-RndDouble (-$jitter) $jitter * $attenuation
         $jy = Get-RndDouble (-$jitter) $jitter * $attenuation
         $wx = [Math]::Sin($i * 0.65) * (Get-RndDouble 0.3 $wave) * $attenuation
         $wy = [Math]::Cos($i * 0.55) * (Get-RndDouble 0.3 $wave) * $attenuation
 
-        # ===================== 4. 生理性肌肉震颤（布朗游走）=====================
         $tremorX += Get-RndDouble -$tremorStep $tremorStep
         $tremorY += Get-RndDouble -$tremorStep $tremorStep
         $tremorX *= $tremorDamping
@@ -145,13 +135,11 @@ function Move-Mouse-Human-Smooth {
         $tremorX *= $attenuation
         $tremorY *= $attenuation
 
-        # 最终坐标
         $nx = [Math]::Clamp([int]($pt.x + $jx + $wx + $tremorX), 0, $screen.Width)
         $ny = [Math]::Clamp([int]($pt.y + $jy + $wy + $tremorY), 0, $screen.Height)
         [System.Windows.Forms.Cursor]::Position = [System.Drawing.Point]::new($nx, $ny)
 
-        # ===================== 5. 逐帧动态延迟 + 人类犹豫停顿 =====================
-        $baseDelay = 6.5 + Get-RndDouble -1.5 1.5
+        $baseDelay = 6.5 + (Get-RndDouble -1.5 1.5)
         $hesitation = 0
         if ($t -gt 0.6 -and $t -lt 0.85 -and (Get-Rnd 1 100) -le 8) {
             $hesitation = Get-Rnd 15 40
@@ -167,7 +155,6 @@ function Move-Mouse-Human-Smooth {
     Write-Verbose "生物级移动完成: $tx , $ty"
 }
 
-# ===================== Win32 输入 =====================
 if (-not ([System.Management.Automation.PSTypeName]'Win32').Type) {
     Add-Type @"
 public class Win32 {
@@ -207,7 +194,6 @@ function Wheel-Mouse {
     [Win32]::mouse_event(0x0800, 0, 0, $delta, 0)
 }
 
-# 键盘映射
 $keyMap = @{
     'a'=65;'b'=66;'c'=67;'d'=68;'e'=69;'f'=70;'g'=71;'h'=72;'i'=73;'j'=74;
     'k'=75;'l'=76;'m'=77;'n'=78;'o'=79;'p'=80;'q'=81;'r'=82;'s'=83;'t'=84;
@@ -243,12 +229,10 @@ function Type-Text {
     }
 }
 
-# 快捷键
 function Select-All { try { [Win32]::keybd_event(17,0,0,0); sleep -ms 35; [Win32]::keybd_event(65,0,0,0); sleep -ms 35; [Win32]::keybd_event(65,0,2,0) } finally { [Win32]::keybd_event(17,0,2,0) } }
 function Copy { try { [Win32]::keybd_event(17,0,0,0); sleep -ms 35; [Win32]::keybd_event(67,0,0,0); sleep -ms 35; [Win32]::keybd_event(67,0,2,0) } finally { [Win32]::keybd_event(17,0,2,0) } }
 function Paste { try { [Win32]::keybd_event(17,0,0,0); sleep -ms 35; [Win32]::keybd_event(86,0,0,0); sleep -ms 35; [Win32]::keybd_event(86,0,2,0) } finally { [Win32]::keybd_event(17,0,2,0) } }
 
-# 指令路由
 if ($action -eq "snapshot") {
     $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
     $bmp = $null; $g = $null
@@ -257,7 +241,7 @@ if ($action -eq "snapshot") {
         $g = [System.Drawing.Graphics]::FromImage($bmp)
         $g.CopyFromScreen(0,0,0,0,$screen.Size)
         $path = Join-Path $workspace "last_screen.png"
-        $bmp.Save($path, [System.Drawing.Imaging.ImageFormat.Png])
+        $bmp.Save($path, [System.Drawing.Imaging.ImageFormat::Png])
         Write-Output $path
     } finally {
         if ($g) { $g.Dispose(); $g = $null }

@@ -134,16 +134,16 @@ powershell -File control.ps1 -action type -text "第一行`r`n第二行"        
 - 所有 `-x`、`-y` 必须为**绝对像素坐标**，原点为主显示器左上角。
 - 若 OpenClaw 从图片分析得到的是归一化坐标（0~1），需先获取屏幕分辨率：
 
-**获取分辨率命令（直接可用）**：
+**获取分辨率命令（直接可用，无转义问题）**：
 ```
-powershell -Command "Add-Type -AssemblyName System.Windows.Forms; $b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds; \"$($b.Width) $($b.Height)\""
+powershell -NoProfile -Command "Add-Type -AssemblyName System.Windows.Forms; `$s=[System.Windows.Forms.Screen]::PrimaryScreen; `$s.Bounds.Width, `$s.Bounds.Height -join ' '"
 ```
-返回示例：`1920 1080` （实际值因设备而异）。
+返回示例：`2560 1440` （实际值因设备而异，两个数字以空格分隔）。
 
 **换算方法**（需在代码或思维中执行，非命令）：
 ```
-abs_x = round(norm_x * width)
-abs_y = round(norm_y * height)
+abs_x = round(norm_x * 宽度)
+abs_y = round(norm_y * 高度)
 ```
 并将结果限定在 `[0, 分辨率-1]` 范围内。
 
@@ -203,7 +203,7 @@ abs_y = round(norm_y * height)
 ### 在输入框中输入文本
 1. 截图找到输入框 → 2. 单击激活输入框（`-action click -x <X> -y <Y>`） → 3. 用 `type` 输入内容
 
-### 复制选中文文本（无原生拖拽，可用的替代方案）
+### 复制选中文本（无原生拖拽，可用的替代方案）
 1. 全选：`-action selectall`
 2. 复制：`-action copy`
 
@@ -211,5 +211,5 @@ abs_y = round(norm_y * height)
 
 ---
 
-**版本**：1.1 · **日期**：2026-04-25  
+**版本**：1.2 · **日期**：2026-04-25  
 **维护者**：Jakechenvb

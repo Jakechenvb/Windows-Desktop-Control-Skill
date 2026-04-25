@@ -1,4 +1,3 @@
-```markdown
 # Windows Desktop Control Skill 环境配置指南
 
 本 Skill 依赖 `control.ps1` 脚本实现**高度拟人化的桌面控制**。  

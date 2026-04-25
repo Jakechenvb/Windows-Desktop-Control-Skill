@@ -43,6 +43,13 @@ function Get-Bezier {
     return [PSCustomObject]@{ x = [int]$x; y = [int]$y }
 }
 
+function Clamp {
+    param($value, $min, $max)
+    if ($value -lt $min) { return $min }
+    if ($value -gt $max) { return $max }
+    return $value
+}
+
 function Safe-Int {
     param($value)
     $result = 0
@@ -91,7 +98,7 @@ function Move-Mouse-Human-Smooth {
 
     $baseSteps = [Math]::Max(20, [int]([Math]::Sqrt($dist) * 2.5))
     $jitterSteps = Get-RndDouble -0.25 0.25
-    $steps = [Math]::Clamp([int]($baseSteps * (1 + $jitterSteps)), 20, 50)
+    $steps = Clamp ([int]($baseSteps * (1 + $jitterSteps))) 20 50
 
     $jitter = Get-RndDouble 1.0 1.5
     $wave = Get-RndDouble 1.3 1.8
@@ -99,12 +106,12 @@ function Move-Mouse-Human-Smooth {
     $tremorDamping = Get-RndDouble 0.84 0.88
 
     $cp1 = @{
-        x = [Math]::Clamp($start.x + (Get-Rnd -140 140), 0, $screen.Width)
-        y = [Math]::Clamp($start.y + (Get-Rnd -120 120), 0, $screen.Height)
+        x = Clamp ($start.x + (Get-Rnd -140 140)) 0 $screen.Width
+        y = Clamp ($start.y + (Get-Rnd -120 120)) 0 $screen.Height
     }
     $cp2 = @{
-        x = [Math]::Clamp($end.x + (Get-Rnd -120 120), 0, $screen.Width)
-        y = [Math]::Clamp($end.y + (Get-Rnd -100 100), 0, $screen.Height)
+        x = Clamp ($end.x + (Get-Rnd -120 120)) 0 $screen.Width
+        y = Clamp ($end.y + (Get-Rnd -100 100)) 0 $screen.Height
     }
 
     $tremorX = 0.0
@@ -135,8 +142,8 @@ function Move-Mouse-Human-Smooth {
         $tremorX *= $attenuation
         $tremorY *= $attenuation
 
-        $nx = [Math]::Clamp([int]($pt.x + $jx + $wx + $tremorX), 0, $screen.Width)
-        $ny = [Math]::Clamp([int]($pt.y + $jy + $wy + $tremorY), 0, $screen.Height)
+        $nx = Clamp ([int]($pt.x + $jx + $wx + $tremorX)) 0 $screen.Width
+        $ny = Clamp ([int]($pt.y + $jy + $wy + $tremorY)) 0 $screen.Height
         [System.Windows.Forms.Cursor]::Position = [System.Drawing.Point]::new($nx, $ny)
 
         $baseDelay = 6.5 + (Get-RndDouble -1.5 1.5)
@@ -157,6 +164,7 @@ function Move-Mouse-Human-Smooth {
 
 if (-not ([System.Management.Automation.PSTypeName]'Win32').Type) {
     Add-Type @"
+using System.Runtime.InteropServices;
 public class Win32 {
     [DllImport("user32.dll")] public static extern void mouse_event(int flags, int dx, int dy, int data, System.IntPtr extra);
     [DllImport("user32.dll")] public static extern void keybd_event(byte key, byte scan, int flags, System.IntPtr extra);
@@ -194,7 +202,6 @@ function Wheel-Mouse {
     [Win32]::mouse_event(0x0800, 0, 0, $delta, 0)
 }
 
-# 键码映射表 (单引号键使用双引号包裹，双引号键使用单引号包裹，避免转义歧义)
 $keyMap = @{
     'a'=65;'b'=66;'c'=67;'d'=68;'e'=69;'f'=70;'g'=71;'h'=72;'i'=73;'j'=74;
     'k'=75;'l'=76;'m'=77;'n'=78;'o'=79;'p'=80;'q'=81;'r'=82;'s'=83;'t'=84;

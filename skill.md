@@ -28,7 +28,7 @@ powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File control.ps1 
 
 **命令**：
 ```
-powershell -File control.ps1 -action snapshot
+ control.ps1 -action snapshot
 ```
 **返回**：截图的绝对路径（字符串）。  
 *示例*（返回的路径会根据系统实际路径变化，无需固定）：
@@ -43,14 +43,14 @@ C:\Users\YourName\.openclaw\Workspace\last_screen.png
 
 **命令**：
 ```
-powershell -File control.ps1 -action move -x <整数> -y <整数>
+ control.ps1 -action move -x <整数> -y <整数>
 ```
 - `<整数>` 为目标屏幕像素坐标。
 - 行为：拟人化轨迹移动到目标点，超出屏幕范围会自动钳位。
 
 *示例（请勿直接使用，坐标需根据实际情况替换）*：
 ```
-powershell -File control.ps1 -action move -x 500 -y 300
+ control.ps1 -action move -x 500 -y 300
 ```
 
 ---
@@ -68,10 +68,10 @@ powershell -File control.ps1 -action move -x 500 -y 300
 
 *示例（坐标仅为示意，实际应替换为视觉定位结果）*：
 ```
-powershell -File control.ps1 -action click -x 640 -y 480        # 左键单击示例
-powershell -File control.ps1 -action rightclick -x 640 -y 480    # 右键单击示例
-powershell -File control.ps1 -action doubleclick -x 640 -y 480   # 双击示例
-powershell -File control.ps1 -action middleclick -x 640 -y 480   # 中键示例
+ control.ps1 -action click -x 640 -y 480        # 左键单击示例
+ control.ps1 -action rightclick -x 640 -y 480    # 右键单击示例
+ control.ps1 -action doubleclick -x 640 -y 480   # 双击示例
+ control.ps1 -action middleclick -x 640 -y 480   # 中键示例
 ```
 
 ---
@@ -80,14 +80,14 @@ powershell -File control.ps1 -action middleclick -x 640 -y 480   # 中键示例
 
 **命令**：
 ```
-powershell -File control.ps1 -action wheel -scroll <整数>
+ control.ps1 -action wheel -scroll <整数>
 ```
 - `<整数>` 正值上滚，负值下滚；通常一个刻度为 `120` 或 `-120`。
 
 *示例（请根据实际滚动方向和格数调整数值）*：
 ```
-powershell -File control.ps1 -action wheel -scroll 360      # 上滚 3 格示例
-powershell -File control.ps1 -action wheel -scroll -240     # 下滚 2 格示例
+ control.ps1 -action wheel -scroll 360      # 上滚 3 格示例
+ control.ps1 -action wheel -scroll -240     # 下滚 2 格示例
 ```
 
 ---
@@ -98,9 +98,9 @@ powershell -File control.ps1 -action wheel -scroll -240     # 下滚 2 格示例
 
 | 功能 | 命令（直接复制可用） |
 |------|---------------------|
-| 全选 (Ctrl+A) | `powershell -File control.ps1 -action selectall` |
-| 复制 (Ctrl+C) | `powershell -File control.ps1 -action copy` |
-| 粘贴 (Ctrl+V) | `powershell -File control.ps1 -action paste` |
+| 全选 (Ctrl+A) | ` control.ps1 -action selectall` |
+| 复制 (Ctrl+C) | ` control.ps1 -action copy` |
+| 粘贴 (Ctrl+V) | ` control.ps1 -action paste` |
 
 **注意**：以上三个命令无额外参数，可直接使用，无示例占位。
 
@@ -110,7 +110,7 @@ powershell -File control.ps1 -action wheel -scroll -240     # 下滚 2 格示例
 
 **命令**：
 ```
-powershell -File control.ps1 -action type -text "<文本内容>"
+ control.ps1 -action type -text "<文本内容>"
 ```
 
 **规则**：
@@ -120,11 +120,11 @@ powershell -File control.ps1 -action type -text "<文本内容>"
 
 *示例（文本内容均为演示，请勿直接复制，应根据用户实际要输入的字符串动态生成）*：
 ```
-powershell -File control.ps1 -action type -text "Hello World"                    # 普通文本示例
-powershell -File control.ps1 -action type -text "密码：`t123456"                 # 包含 Tab 示例
-powershell -File control.ps1 -action type -text "错误`b`b修正"                   # 退格修正示例
-powershell -File control.ps1 -action type -text "他说：`"你好`""                 # 含双引号示例
-powershell -File control.ps1 -action type -text "第一行`r`n第二行"               # 换行示例
+ control.ps1 -action type -text "Hello World"                    # 普通文本示例
+ control.ps1 -action type -text "密码：`t123456"                 # 包含 Tab 示例
+ control.ps1 -action type -text "错误`b`b修正"                   # 退格修正示例
+ control.ps1 -action type -text "他说：`"你好`""                 # 含双引号示例
+ control.ps1 -action type -text "第一行`r`n第二行"               # 换行示例
 ```
 
 ---
@@ -154,7 +154,7 @@ abs_y = round(norm_y * 高度)
 当用户要求“点击屏幕上的某个元素（如图标、按钮、输入框）”时，请按以下步骤**依次调用**：
 
 1. **截图**  
-   执行 `powershell -File control.ps1 -action snapshot`，获取最新截图文件路径。
+   执行 ` control.ps1 -action snapshot`，获取最新截图文件路径。
 
 2. **读图与定位**  
    使用 OpenClaw 的图片理解能力读取该截图，根据目标描述（例如“Chrome 图标”）找到目标中心点的**屏幕绝对坐标 (x, y)**。  
@@ -179,7 +179,7 @@ abs_y = round(norm_y * 高度)
 - **组合键安全**：全部快捷键采用 `try/finally` 确保释放，断电或中断不会卡键。
 - **调试模式**：任何命令追加 `-Verbose` 可输出详细日志，例如：
   ```
-  powershell -File control.ps1 -action click -x 500 -y 300 -Verbose   # 仅为 Verbose 用法示例，坐标需替换
+   control.ps1 -action click -x 500 -y 300 -Verbose   # 仅为 Verbose 用法示例，坐标需替换
   ```
 
 ---
@@ -211,5 +211,6 @@ abs_y = round(norm_y * 高度)
 
 ---
 
-**版本**：1.2 · **日期**：2026-04-25  
+**版本**：1.3 · **日期**：2026-04-28  
 **维护者**：Jakechenvb
+
